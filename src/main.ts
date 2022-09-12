@@ -2,7 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
   await app.listen(3000);
 }
 bootstrap();
+
+//psql --host=ec2-52-207-90-231.compute-1.amazonaws.com --username=qcppirmxroywrf --password=fc49a095479a15caf403c2e103157ee350743ca4683040b312fa74d200b37ced --dbname=dc2s7m2svfh9dj
