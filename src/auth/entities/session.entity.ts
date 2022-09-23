@@ -7,7 +7,7 @@ export class SessionEntity extends BaseEntity {
   @Column({ type: 'varchar', length: '2000', nullable: false })
   refreshToken;
 
-  @OneToOne(() => UserEntity, (user) => user.session)
+  @OneToOne(() => UserEntity, (user) => user.session, { cascade: true })
   @JoinColumn()
   user: UserEntity;
 }

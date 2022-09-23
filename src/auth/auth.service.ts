@@ -22,7 +22,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 
 import 'dotenv/config';
 import { LoginUserDto } from './dto/loginUser.dto';
-import { TokenDecodeData } from './types/tokens.interface';
+import { TokenDecodeData, TokensInterface } from './types/tokens.interface';
+import { RegistrationResponseInterface } from './types/common';
 
 @Injectable()
 export class AuthService {
@@ -61,7 +62,7 @@ export class AuthService {
 
   async registrationUser(
     createUserDto: CreateUserDto,
-  ): Promise<UserResponseInterface> {
+  ): Promise<RegistrationResponseInterface> {
     const user = await this.createUser(createUserDto);
 
     await this.sendActivationEmail(
@@ -80,8 +81,7 @@ export class AuthService {
     // return link for user email: `mailto:${user.email}`
 
     return {
-      user,
-      tokens,
+      userEmail: user.email,
     };
   }
 
@@ -107,7 +107,7 @@ export class AuthService {
       });
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<UserResponseInterface> {
+  async login(loginUserDto: LoginUserDto): Promise<TokensInterface> {
     const user = await this.userRepository.findOne({
       select: [
         'firstName',
@@ -129,6 +129,8 @@ export class AuthService {
       throw new HttpException(INVALID_CREDETIALS, HttpStatus.NOT_FOUND);
     }
 
+    console.log(loginUserDto.password, user.password);
+
     const isPassEquals = await bcrypt.compare(
       loginUserDto.password,
       user.password,
@@ -145,7 +147,7 @@ export class AuthService {
       );
     }
 
-    delete user.password;
+    // delete user.password;
 
     const tokens = this.generateTokens({
       userName: user.userName,
@@ -154,10 +156,7 @@ export class AuthService {
 
     await this.saveToken(user, tokens.refreshToken);
 
-    return {
-      user,
-      tokens,
-    };
+    return tokens;
   }
 
   async logout(refreshToken: string) {
@@ -225,7 +224,7 @@ export class AuthService {
     return await this.sessionRepository.findOne({ where: { refreshToken } });
   }
 
-  generateTokens(secretData: TokenDecodeData) {
+  generateTokens(secretData: TokenDecodeData): TokensInterface {
     const accessToken = jwt.sign(secretData, process.env.JWT_ACCESS_SECRET, {
       expiresIn: '30m',
     });

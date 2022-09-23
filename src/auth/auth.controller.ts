@@ -9,12 +9,16 @@ import {
   Res,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserResponseInterface } from './types/userResponse.interface';
 import { Response, Request } from 'express';
 import { LoginUserDto } from './dto/loginUser.dto';
+import { RegistrationResponseInterface } from './types/common';
+import { AccessTokenType } from './types/tokens.interface';
+import { AuthGuard } from './guards/auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,15 +29,15 @@ export class AuthController {
   async createUser(
     @Res({ passthrough: true }) response: Response,
     @Body() createUserDto: CreateUserDto,
-  ): Promise<UserResponseInterface> {
+  ): Promise<RegistrationResponseInterface> {
     const registrationUser = await this.authService.registrationUser(
       createUserDto,
     );
 
-    response.cookie('refreshToken', registrationUser.tokens.refreshToken, {
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-    });
+    // response.cookie('refreshToken', registrationUser.tokens.refreshToken, {
+    //   maxAge: 30 * 24 * 60 * 60 * 1000,
+    //   httpOnly: true,
+    // });
 
     return registrationUser;
   }
@@ -43,26 +47,31 @@ export class AuthController {
   async logIn(
     @Res({ passthrough: true }) response: Response,
     @Body() loginUserDto: LoginUserDto,
-  ) {
-    const userData = await this.authService.login(loginUserDto);
+  ): Promise<AccessTokenType> {
+    const tokens = await this.authService.login(loginUserDto);
 
-    response.cookie('refreshToken', userData.tokens.refreshToken, {
+    response.cookie('refreshToken', tokens.refreshToken, {
       maxAge: 30 * 24 * 60 * 60 * 1000,
       httpOnly: true,
     });
 
-    return userData;
+    return { accessToken: tokens.accessToken };
   }
 
   @Post('logout')
+  @UseGuards(AuthGuard)
   async logout(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
     const { refreshToken } = request.cookies;
-    const token = await this.authService.logout(refreshToken);
-    response.clearCookie('refreshToken');
-    return token;
+
+    try {
+      await this.authService.logout(refreshToken);
+      response.clearCookie('refreshToken');
+    } catch (error) {}
+
+    return { message: 'You are logged out' };
   }
 
   @Get('activate')
