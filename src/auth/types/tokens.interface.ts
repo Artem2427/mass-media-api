@@ -7,3 +7,5 @@ export interface TokenDecodeData {
   userName: string;
   email: string;
 }
+
+export type AccessTokenType = Omit<TokensInterface, 'refreshToken'>;

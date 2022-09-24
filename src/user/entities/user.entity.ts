@@ -1,4 +1,3 @@
-import { SessionEntity } from 'src/auth/entities/session.entity';
 import { BaseEntity } from 'src/core/entities/base.entity';
 import { UserRolesEnum } from 'src/core/enums/userRole.enum';
 import { BeforeInsert, Column, Entity, OneToOne } from 'typeorm';
@@ -42,9 +41,6 @@ export class UserEntity extends BaseEntity {
     default: UserRolesEnum.Ghost,
   })
   role: UserRolesEnum;
-
-  @OneToOne(() => SessionEntity, (session) => session.user)
-  session: SessionEntity;
 
   @BeforeInsert()
   async hashPassord() {
