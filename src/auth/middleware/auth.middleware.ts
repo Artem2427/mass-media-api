@@ -12,7 +12,7 @@ export class AuthMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: ExpressRequestInterface, res: Response, next: NextFunction) {
-    if (!req.headers.authorization) {
+    if (!req.headers.authorization || !req.cookies.refreshToken) {
       req.user = null;
       next();
       return;
@@ -26,9 +26,15 @@ export class AuthMiddleware implements NestMiddleware {
         process.env.JWT_ACCESS_SECRET,
       );
 
-      const user = await this.userService.findByEmail(userData.email);
+      console.log(userData, 'userData');
+      if (userData) {
+        const user = await this.userService.findByEmail(userData.email);
 
-      req.user = user;
+        req.user = user;
+      } else {
+        req.user = null;
+      }
+
       next();
       return;
     } catch (error) {

@@ -15,22 +15,24 @@ import {
 } from './errors/errors';
 
 import { UserEntity } from 'src/user/entities/user.entity';
-import { SessionEntity } from './entities/session.entity';
 
 import { UserResponseInterface } from './types/userResponse.interface';
 import { MailerService } from '@nestjs-modules/mailer';
 
 import 'dotenv/config';
 import { LoginUserDto } from './dto/loginUser.dto';
-import { TokenDecodeData } from './types/tokens.interface';
+import {
+  AccessTokenType,
+  TokenDecodeData,
+  TokensInterface,
+} from './types/tokens.interface';
+import { RegistrationResponseInterface } from './types/common';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(SessionEntity)
-    private readonly sessionRepository: Repository<SessionEntity>,
     private readonly mailerService: MailerService,
   ) {}
 
@@ -61,7 +63,7 @@ export class AuthService {
 
   async registrationUser(
     createUserDto: CreateUserDto,
-  ): Promise<UserResponseInterface> {
+  ): Promise<RegistrationResponseInterface & TokensInterface> {
     const user = await this.createUser(createUserDto);
 
     await this.sendActivationEmail(
@@ -74,14 +76,12 @@ export class AuthService {
       email: user.email,
     });
 
-    await this.saveToken(user, tokens.refreshToken);
-
     //TODO
     // return link for user email: `mailto:${user.email}`
 
     return {
-      user,
-      tokens,
+      userEmail: user.email,
+      ...tokens,
     };
   }
 
@@ -107,7 +107,7 @@ export class AuthService {
       });
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<UserResponseInterface> {
+  async login(loginUserDto: LoginUserDto): Promise<TokensInterface> {
     const user = await this.userRepository.findOne({
       select: [
         'firstName',
@@ -152,21 +152,10 @@ export class AuthService {
       email: user.email,
     });
 
-    await this.saveToken(user, tokens.refreshToken);
-
-    return {
-      user,
-      tokens,
-    };
+    return tokens;
   }
 
-  async logout(refreshToken: string) {
-    const token = await this.removeToken(refreshToken);
-
-    return token;
-  }
-
-  async refresh(refreshToken: string) {
+  async refresh(refreshToken: string): Promise<AccessTokenType> {
     if (!refreshToken) {
       throw new HttpException(UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
     }
@@ -176,9 +165,7 @@ export class AuthService {
       process.env.JWT_REFRESH_SECRET,
     );
 
-    const tokenFromDb = await this.findToken(refreshToken);
-
-    if (!userData || !tokenFromDb) {
+    if (!userData) {
       throw new HttpException(UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
     }
 
@@ -191,11 +178,8 @@ export class AuthService {
       email: user.email,
     });
 
-    await this.saveToken(user, tokens.refreshToken);
-
     return {
-      user,
-      tokens,
+      accessToken: tokens.accessToken,
     };
   }
 
@@ -221,11 +205,7 @@ export class AuthService {
     }
   }
 
-  async findToken(refreshToken: string) {
-    return await this.sessionRepository.findOne({ where: { refreshToken } });
-  }
-
-  generateTokens(secretData: TokenDecodeData) {
+  generateTokens(secretData: TokenDecodeData): TokensInterface {
     const accessToken = jwt.sign(secretData, process.env.JWT_ACCESS_SECRET, {
       expiresIn: '30m',
     });
@@ -238,27 +218,5 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
-  }
-
-  async saveToken(user: UserEntity, refreshToken: string) {
-    const oldSession = await this.sessionRepository.findOne({
-      where: { user: { id: user.id } },
-      relations: ['user'],
-    });
-
-    if (oldSession) {
-      oldSession.refreshToken = refreshToken;
-      return await this.sessionRepository.save(oldSession);
-    }
-
-    const newSession = new SessionEntity();
-    newSession.refreshToken = refreshToken;
-    newSession.user = user;
-
-    return await this.sessionRepository.save(newSession);
-  }
-
-  async removeToken(refreshToken: string) {
-    return await this.sessionRepository.delete({ refreshToken });
   }
 }

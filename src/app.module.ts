@@ -19,12 +19,14 @@ import { AuthMiddleware } from './auth/middleware/auth.middleware';
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     MailerModule.forRoot({
       transport: {
-        host: 'smtp.gmail.com',
-        port: 465,
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT),
         secure: true,
         auth: {
-          user: 'artem.danko.2k18@gmail.com',
-          pass: 'vltjlczpzmitgbjd',
+          // user: 'artem.danko.2k18@gmail.com',
+          // pass: 'vltjlczpzmitgbjd',
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD,
         },
       },
     }),
