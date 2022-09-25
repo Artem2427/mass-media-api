@@ -16,9 +16,6 @@ import {
 
 import { UserEntity } from 'src/user/entities/user.entity';
 
-import { UserResponseInterface } from './types/userResponse.interface';
-import { MailerService } from '@nestjs-modules/mailer';
-
 import 'dotenv/config';
 import { LoginUserDto } from './dto/loginUser.dto';
 import {
@@ -27,13 +24,14 @@ import {
   TokensInterface,
 } from './types/tokens.interface';
 import { RegistrationResponseInterface } from './types/common';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private readonly mailerService: MailerService,
+    private readonly emailService: EmailService,
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
@@ -67,7 +65,7 @@ export class AuthService {
     const user = await this.createUser(createUserDto);
 
     await this.sendActivationEmail(
-      user.email,
+      user,
       `${process.env.API_URL}/api/auth/activate?link=${user.activationLink}`,
     );
 
@@ -85,26 +83,16 @@ export class AuthService {
     };
   }
 
-  async sendActivationEmail(to: string, link: string): Promise<void> {
-    this.mailerService
-      .sendMail({
-        from: process.env.SMTP_USER,
-        to,
-        subject: 'Активація аккаунта на ' + process.env.API_URL,
-        text: '',
-        html: `
-          <div>
-            <h1>Для активації перейдіть по силці</h1>
-            <a href=${link}>${link}</a>
-          </div>
-        `,
-      })
-      .then((r) => {
-        console.log(r, 'Email is sent');
-      })
-      .catch((e) => {
-        console.log(e, 'Error sending email');
-      });
+  async sendActivationEmail(user: UserEntity, link: string): Promise<void> {
+    this.emailService.sendLetter({
+      to: user.email,
+      filePath: './views/activationEmail.hjs',
+      subject: 'Активація аккаунта',
+      context: {
+        link,
+        name: user.firstName,
+      },
+    });
   }
 
   async login(loginUserDto: LoginUserDto): Promise<TokensInterface> {

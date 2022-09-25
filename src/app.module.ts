@@ -1,18 +1,20 @@
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { MailerModule } from '@nestjs-modules/mailer';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
 
 import { typeOrmAsyncConfig } from './config/typeorm.config';
 
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { EmailModule } from './email/email.module';
 
-import { MailerModule } from '@nestjs-modules/mailer';
+import { AppController } from './app.controller';
+
+import { AppService } from './app.service';
+
 import { AuthMiddleware } from './auth/middleware/auth.middleware';
 
-// vltjlczpzmitgbjd;
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -32,6 +34,7 @@ import { AuthMiddleware } from './auth/middleware/auth.middleware';
     }),
     AuthModule,
     UserModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
