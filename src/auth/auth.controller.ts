@@ -18,7 +18,6 @@ import { Response, Request } from 'express';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { RegistrationResponseInterface } from './types/common';
 import { AccessTokenType } from './types/tokens.interface';
-import { User } from 'src/user/decorators/user.decorator';
 import { AuthGuard } from './guards/auth.guard';
 
 @Controller('auth')

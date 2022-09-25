@@ -26,7 +26,6 @@ export class AuthMiddleware implements NestMiddleware {
         process.env.JWT_ACCESS_SECRET,
       );
 
-      console.log(userData, 'userData');
       if (userData) {
         const user = await this.userService.findByEmail(userData.email);
 
