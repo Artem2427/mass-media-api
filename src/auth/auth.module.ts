@@ -6,7 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { EmailService } from 'src/email/email.service';
 
-import { UserEntity } from 'src/user/entities/user.entity';
+import { UserEntity } from 'src/user/entity/user.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity])],
