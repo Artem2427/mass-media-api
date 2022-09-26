@@ -5,7 +5,7 @@ import * as jwt from 'jsonwebtoken';
 import * as uuid from 'uuid';
 import * as bcrypt from 'bcrypt';
 
-import { CreateUserDto } from './dto/createUser.dto';
+import { CreateUserDTO } from './dto/createUser.dto';
 import {
   CANNOT_LOGIN_WITHOUT_ACTIVATE_YOUR_ACCOUNT,
   EMAIL_OR_USERNAME_ARE_TAKEN,
@@ -14,10 +14,10 @@ import {
   UNAUTHORIZED,
 } from './errors/errors';
 
-import { UserEntity } from 'src/user/entities/user.entity';
+import { UserEntity } from 'src/user/entity/user.entity';
 
 import 'dotenv/config';
-import { LoginUserDto } from './dto/loginUser.dto';
+import { LoginUserDTO } from './dto/loginUser.dto';
 import {
   AccessTokenType,
   TokenDecodeData,
@@ -34,7 +34,7 @@ export class AuthService {
     private readonly emailService: EmailService,
   ) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
+  async createUser(createUserDto: CreateUserDTO): Promise<UserEntity> {
     const queryBuilder = this.userRepository
       .createQueryBuilder('users')
       .orWhere('users.email = :email', { email: createUserDto.email })
@@ -60,7 +60,7 @@ export class AuthService {
   }
 
   async registrationUser(
-    createUserDto: CreateUserDto,
+    createUserDto: CreateUserDTO,
   ): Promise<RegistrationResponseInterface & TokensInterface> {
     const user = await this.createUser(createUserDto);
 
@@ -95,7 +95,7 @@ export class AuthService {
     });
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<TokensInterface> {
+  async login(loginUserDto: LoginUserDTO): Promise<TokensInterface> {
     const user = await this.userRepository.findOne({
       select: [
         'firstName',

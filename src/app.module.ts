@@ -14,10 +14,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { AuthMiddleware } from './auth/middleware/auth.middleware';
+import { ArticleModule } from './article/article.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: `.env` }),
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     MailerModule.forRoot({
       transport: {
@@ -25,8 +26,6 @@ import { AuthMiddleware } from './auth/middleware/auth.middleware';
         port: Number(process.env.SMTP_PORT),
         secure: true,
         auth: {
-          // user: 'artem.danko.2k18@gmail.com',
-          // pass: 'vltjlczpzmitgbjd',
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASSWORD,
         },
@@ -35,6 +34,7 @@ import { AuthMiddleware } from './auth/middleware/auth.middleware';
     AuthModule,
     UserModule,
     EmailModule,
+    ArticleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

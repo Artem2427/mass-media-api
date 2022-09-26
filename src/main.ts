@@ -1,13 +1,37 @@
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 
+import { AppModule } from './app.module';
+
 async function bootstrap() {
+  const PORT = process.env.PORT || 5000;
   const app = await NestFactory.create(AppModule, { cors: true });
   app.setGlobalPrefix('api');
 
   app.use(cookieParser());
-  await app.listen(process.env.PORT || 5000);
+
+  const config = new DocumentBuilder()
+    .setTitle('Mass-media API')
+    .setDescription('Documentations REST API')
+    .setVersion('1.0.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        description: 'Enter JWT token',
+        scheme: 'bearer',
+        name: 'Authorization',
+        in: 'header',
+        bearerFormat: 'JWT',
+      },
+      'JWT-auth',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('/api/docs', app, document);
+
+  await app.listen(PORT, () => console.log(`Server started on port - ${PORT}`));
 }
 bootstrap();
 
