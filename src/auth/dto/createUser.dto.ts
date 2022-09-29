@@ -4,7 +4,7 @@ import {
   IsString,
   IsOptional,
   IsEnum,
-  Min,
+  MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -28,7 +28,7 @@ export class CreateUserDTO {
 
   @ApiProperty({ type: String, name: 'password', required: true, minLength: 5 })
   @IsNotEmpty()
-  @Min(5)
+  @MinLength(5)
   readonly password: string;
 
   @ApiProperty({ type: String, name: 'userName', required: true })
@@ -36,8 +36,12 @@ export class CreateUserDTO {
   @IsString()
   readonly userName: string;
 
-  @ApiPropertyOptional({ enum: UserRolesEnum, default: UserRolesEnum.Ghost })
+  @ApiPropertyOptional({
+    enum: UserRolesEnum,
+    isArray: true,
+    default: UserRolesEnum.Ghost,
+  })
   @IsOptional()
   @IsEnum(UserRolesEnum)
-  readonly role?: UserRolesEnum;
+  readonly roles?: UserRolesEnum[];
 }
