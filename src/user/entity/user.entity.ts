@@ -38,9 +38,10 @@ export class UserEntity extends BaseEntity {
   @Column({
     type: 'enum',
     enum: UserRolesEnum,
-    default: UserRolesEnum.Ghost,
+    array: true,
+    default: [UserRolesEnum.Ghost],
   })
-  role: UserRolesEnum;
+  roles: UserRolesEnum[];
 
   @BeforeInsert()
   async hashPassord() {

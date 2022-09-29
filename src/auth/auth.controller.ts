@@ -17,7 +17,6 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -41,7 +40,9 @@ export class AuthController {
 
   @ApiOperation({ summary: 'Register new user' })
   @ApiBody({ type: CreateUserDTO })
-  @ApiCreatedResponse({ description: 'User Registration' })
+  @ApiCreatedResponse({
+    description: 'User Registration',
+  })
   @Post('registration')
   @UsePipes(new ValidationPipe())
   async createUser(

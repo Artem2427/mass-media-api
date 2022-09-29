@@ -108,7 +108,7 @@ export class AuthService {
         'avatar',
         'isActivated',
         'activationLink',
-        'role',
+        'roles',
       ],
       where: { email: loginUserDto.email },
     });
@@ -195,7 +195,7 @@ export class AuthService {
 
   generateTokens(secretData: TokenDecodeData): TokensInterface {
     const accessToken = jwt.sign(secretData, process.env.JWT_ACCESS_SECRET, {
-      expiresIn: '30m',
+      expiresIn: '2h',
     });
 
     const refreshToken = jwt.sign(secretData, process.env.JWT_REFRESH_SECRET, {
