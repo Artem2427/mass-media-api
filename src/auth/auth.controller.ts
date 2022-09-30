@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Get,
-  Param,
   Body,
   UsePipes,
   ValidationPipe,
@@ -31,7 +30,9 @@ import { LoginUserDTO } from './dto/loginUser.dto';
 import { RegistrationResponseInterface } from './types/common';
 import { AccessTokenType } from './types/tokens.interface';
 import { UNAUTHORIZED } from './errors/errors';
-import { ActivationLinkQuery } from './dto/ActivationQuery.dto';
+// import { ActivationLinkQuery } from './dto/activationQuery.dto';
+import { ActivateByCodeDTO } from './dto/activeteByCode.dto';
+import { ResendCodeDTO } from './dto/resendCode.dto';
 
 @ApiTags('Authorization user')
 @Controller('auth')
@@ -59,6 +60,22 @@ export class AuthController {
     });
 
     return { userEmail: registrationUser.userEmail };
+  }
+
+  @ApiOperation({ summary: 'Activete your account by code' })
+  @ApiBody({ type: ActivateByCodeDTO })
+  @ApiOkResponse({ description: 'Account is activated' })
+  @Post('activete-by-code')
+  async activeteAccountByCode(@Body() activeteDTO: ActivateByCodeDTO) {
+    return this.authService.activeteAccountByCode(activeteDTO);
+  }
+
+  @ApiOperation({ summary: 'Resend activated code' })
+  @ApiBody({ type: ResendCodeDTO })
+  @ApiOkResponse({ description: 'Account is activated' })
+  @Post('activete-by-code')
+  async resendActivatedCode(@Body() resendCodeDTO: ResendCodeDTO) {
+    return await this.authService.resendActivatedCode(resendCodeDTO);
   }
 
   @ApiOperation({ summary: 'Log in' })
@@ -90,19 +107,19 @@ export class AuthController {
     response.clearCookie('refreshToken');
   }
 
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Activation link' })
-  @ApiOkResponse({ description: 'Account is activated' })
-  // @ApiQuery({ type: ActivationLinkQuery })
-  @Get('activate')
-  async getActivateLink(
-    @Res() response: Response,
-    @Query() query: ActivationLinkQuery,
-  ) {
-    await this.authService.activate(query.link);
+  // @ApiBearerAuth('JWT-auth')
+  // @ApiOperation({ summary: 'Activation link' })
+  // @ApiOkResponse({ description: 'Account is activated' })
+  // // @ApiQuery({ type: ActivationLinkQuery })
+  // @Get('activate')
+  // async getActivateLink(
+  //   @Res() response: Response,
+  //   @Query() query: ActivationLinkQuery,
+  // ) {
+  //   await this.authService.activate(query.link);
 
-    return response.redirect(process.env.CLIENT_URL);
-  }
+  //   return response.redirect(process.env.CLIENT_URL);
+  // }
 
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Check refresh token' })

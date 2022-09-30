@@ -9,12 +9,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   app.setGlobalPrefix('api');
 
+  // app.enableCors({ origin: 'http://localhost:3000' });
+
   app.use(cookieParser());
 
   const config = new DocumentBuilder()
     .setTitle('Mass-media API')
     .setDescription('Documentations REST API')
     .setVersion('1.0.0')
+    .addServer('https://mass-media-db.herokuapp.com/')
     .addBearerAuth(
       {
         type: 'http',
@@ -31,7 +34,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/api/docs', app, document);
 
-  await app.listen(PORT, () => console.log(`Server started on port - ${PORT}`));
+  await app.listen(PORT);
 }
 bootstrap();
 

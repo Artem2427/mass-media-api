@@ -1,4 +1,11 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { UserRolesEnum } from 'src/core/enums/userRole.enum';
 import { ExpressRequestInterface } from 'src/types/expressRequest.interface';
@@ -9,17 +16,18 @@ import { RoleGuard } from './guards/role.guard';
 
 import { UserService } from './user.service';
 
+@ApiTags('Users flow')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get user data' })
+  @ApiOkResponse({ type: UserEntity })
   @Get()
   @Roles(UserRolesEnum.Ghost)
   @UseGuards(AuthGuard, RoleGuard)
-  async currentUser(
-    @Req() request: ExpressRequestInterface,
-    @User() user: UserEntity,
-  ): Promise<UserEntity> {
+  async currentUser(@User() user: UserEntity): Promise<UserEntity> {
     return user;
   }
 }
