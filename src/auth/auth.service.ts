@@ -8,9 +8,11 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDTO } from './dto/createUser.dto';
 import {
   CANNOT_LOGIN_WITHOUT_ACTIVATE_YOUR_ACCOUNT,
+  CODE_IS_NOT_CORRECT,
   EMAIL_OR_USERNAME_ARE_TAKEN,
   INCORRECT_ACTIVATION_LINK,
   INVALID_CREDETIALS,
+  NOT_REGISTRATION,
   UNAUTHORIZED,
 } from './errors/errors';
 
@@ -25,12 +27,18 @@ import {
 } from './types/tokens.interface';
 import { RegistrationResponseInterface } from './types/common';
 import { EmailService } from 'src/email/email.service';
+import { randomCode } from 'src/core/utils/random-code';
+import { ActivationCodeEntity } from './entity/activation-code.entity';
+import { ActivateByCodeDTO } from './dto/activeteByCode.dto';
+import { ResendCodeDTO } from './dto/resendCode.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(ActivationCodeEntity)
+    private readonly activationCodeRepository: Repository<ActivationCodeEntity>,
     private readonly emailService: EmailService,
   ) {}
 
@@ -53,21 +61,27 @@ export class AuthService {
 
     const activationLink = uuid.v4(); // dsf443j-rdfg43-34tfdg
 
+    const code = randomCode(6);
+
     const newUser = new UserEntity();
     Object.assign(newUser, createUserDto, { activationLink });
 
+    const activationCode = new ActivationCodeEntity();
+    activationCode.code = code;
+
+    newUser.activationCode = activationCode;
+
     return await this.userRepository.save(newUser);
   }
+
+  // `${process.env.API_URL}/api/auth/activate?link=${user.activationLink}`
 
   async registrationUser(
     createUserDto: CreateUserDTO,
   ): Promise<RegistrationResponseInterface & TokensInterface> {
     const user = await this.createUser(createUserDto);
 
-    await this.sendActivationEmail(
-      user,
-      `${process.env.API_URL}/api/auth/activate?link=${user.activationLink}`,
-    );
+    await this.sendActivationEmail(user);
 
     const tokens = this.generateTokens({
       userName: user.userName,
@@ -83,13 +97,72 @@ export class AuthService {
     };
   }
 
-  async sendActivationEmail(user: UserEntity, link: string): Promise<void> {
+  async activeteAccountByCode(activeteDTO: ActivateByCodeDTO) {
+    const activationCode = await this.activationCodeRepository
+      .createQueryBuilder('activationCode')
+      .leftJoinAndSelect('activationCode.user', 'user')
+      .where('user.email = :email', { email: activeteDTO.email })
+      .getOne();
+
+    if (!activationCode) {
+      throw new HttpException(NOT_REGISTRATION, HttpStatus.NOT_FOUND);
+    }
+
+    if (activationCode.code !== activeteDTO.code) {
+      throw new HttpException(CODE_IS_NOT_CORRECT, HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { email: activeteDTO.email },
+    });
+
+    user.isActivated = true;
+    await this.userRepository.save(user);
+    await this.activationCodeRepository.remove(activationCode);
+  }
+
+  async resendActivatedCode(resendCodeDTO: ResendCodeDTO) {
+    const activationCode = await this.activationCodeRepository
+      .createQueryBuilder('activationCode')
+      .leftJoinAndSelect('activationCode.user', 'user')
+      .where('user.email = :email', { email: resendCodeDTO.email })
+      .getOne();
+
+    if (!activationCode) {
+      throw new HttpException(NOT_REGISTRATION, HttpStatus.NOT_FOUND);
+    }
+
+    const code = randomCode(6);
+    activationCode.code = code;
+
+    await this.activationCodeRepository.save(activationCode);
+
     this.emailService.sendLetter({
+      to: resendCodeDTO.email,
+      filePath: './views/activationEmail.hjs',
+      subject: '',
+      context: {
+        // code: user.activationCode.code.split('').map((character) => {
+        //   return {
+        //     symbol: character,
+        //   };
+        // }),
+        // name: user.firstName,
+      },
+    });
+  }
+
+  async sendActivationEmail(user: UserEntity): Promise<void> {
+    await this.emailService.sendLetter({
       to: user.email,
       filePath: './views/activationEmail.hjs',
       subject: 'Активація аккаунта',
       context: {
-        link,
+        code: user.activationCode.code.split('').map((character) => {
+          return {
+            symbol: character,
+          };
+        }),
         name: user.firstName,
       },
     });
