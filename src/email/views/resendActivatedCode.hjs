@@ -1,0 +1,25 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <div class='container' style='width: 600px;margin: 0 auto;'>
+      <h1
+        class='title'
+        style='font-weight: bold;font-size: 32px;padding: 0;margin: 0;margin-bottom: 10px;'
+      >Новий код активації</h1>
+      <div class='code__block' style='display: flex;column-gap: 3px;'>
+        {{#code}}
+          <span
+            class='character'
+            style='font-weight: 600;font-size: 24px;display: inline-block;padding: 5px;color: #fff;background-color: black;'
+          >{{symbol}}</span>
+        {{/code}}
+      </div>
+    </div>
+  </body>
+</html>

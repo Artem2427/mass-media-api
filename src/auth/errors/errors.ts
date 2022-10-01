@@ -6,3 +6,4 @@ export const CANNOT_LOGIN_WITHOUT_ACTIVATE_YOUR_ACCOUNT =
 export const UNAUTHORIZED = 'Not authorized';
 export const NOT_REGISTRATION = 'Not registered';
 export const CODE_IS_NOT_CORRECT = 'Code is not correct';
+export const ACCOUNT_HAS_BEEN_ALREADY_ACTIVATED = 'Your accouunt is activated';
