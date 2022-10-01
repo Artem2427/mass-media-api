@@ -3,7 +3,7 @@ import { UserRolesEnum } from 'src/core/enums/userRole.enum';
 import { BeforeInsert, Column, Entity, OneToOne } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ActivationCodeEntity } from 'src/auth/entity/activation-code.entity';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
@@ -44,8 +44,8 @@ export class UserEntity extends BaseEntity {
   isActivated: boolean;
 
   @ApiProperty({ type: String })
-  @Column({ type: 'varchar', length: '2000', nullable: true })
-  activationLink: string;
+  @Column({ type: 'varchar', length: '2000', nullable: false })
+  forgotPasswordLink: string;
 
   @ApiProperty({ enum: UserRolesEnum, isArray: true })
   @Column({
@@ -56,11 +56,11 @@ export class UserEntity extends BaseEntity {
   })
   roles: UserRolesEnum[];
 
-  @ApiProperty({ type: () => ActivationCodeEntity })
+  @ApiPropertyOptional({ type: () => ActivationCodeEntity, example: {} })
   @OneToOne(
     () => ActivationCodeEntity,
     (activationCode) => activationCode.user,
-    { cascade: ['insert'] },
+    { cascade: ['insert', 'update'] },
   )
   activationCode: ActivationCodeEntity;
 

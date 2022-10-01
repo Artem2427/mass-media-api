@@ -7,16 +7,19 @@ import * as bcrypt from 'bcrypt';
 
 import { CreateUserDTO } from './dto/createUser.dto';
 import {
+  ACCOUNT_HAS_BEEN_ALREADY_ACTIVATED,
   CANNOT_LOGIN_WITHOUT_ACTIVATE_YOUR_ACCOUNT,
   CODE_IS_NOT_CORRECT,
   EMAIL_OR_USERNAME_ARE_TAKEN,
-  INCORRECT_ACTIVATION_LINK,
   INVALID_CREDETIALS,
   NOT_REGISTRATION,
   UNAUTHORIZED,
 } from './errors/errors';
 
 import { UserEntity } from 'src/user/entity/user.entity';
+import { ActivationCodeEntity } from './entity/activation-code.entity';
+
+import { EmailService } from 'src/email/email.service';
 
 import 'dotenv/config';
 import { LoginUserDTO } from './dto/loginUser.dto';
@@ -26,11 +29,10 @@ import {
   TokensInterface,
 } from './types/tokens.interface';
 import { RegistrationResponseInterface } from './types/common';
-import { EmailService } from 'src/email/email.service';
 import { randomCode } from 'src/core/utils/random-code';
-import { ActivationCodeEntity } from './entity/activation-code.entity';
 import { ActivateByCodeDTO } from './dto/activeteByCode.dto';
 import { ResendCodeDTO } from './dto/resendCode.dto';
+import { UpdatePasswordDTO } from './dto/updatePassword.dto';
 
 @Injectable()
 export class AuthService {
@@ -59,12 +61,12 @@ export class AuthService {
       );
     }
 
-    const activationLink = uuid.v4(); // dsf443j-rdfg43-34tfdg
+    const forgotPasswordLink = uuid.v4(); // dsf443j-rdfg43-34tfdg
 
     const code = randomCode(6);
 
     const newUser = new UserEntity();
-    Object.assign(newUser, createUserDto, { activationLink });
+    Object.assign(newUser, createUserDto, { forgotPasswordLink });
 
     const activationCode = new ActivationCodeEntity();
     activationCode.code = code;
@@ -104,6 +106,16 @@ export class AuthService {
       .where('user.email = :email', { email: activeteDTO.email })
       .getOne();
 
+    const user = await this.userRepository.findOne({
+      where: { email: activeteDTO.email },
+    });
+    if (user && user.isActivated) {
+      throw new HttpException(
+        ACCOUNT_HAS_BEEN_ALREADY_ACTIVATED,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     if (!activationCode) {
       throw new HttpException(NOT_REGISTRATION, HttpStatus.NOT_FOUND);
     }
@@ -112,13 +124,13 @@ export class AuthService {
       throw new HttpException(CODE_IS_NOT_CORRECT, HttpStatus.BAD_REQUEST);
     }
 
-    const user = await this.userRepository.findOne({
-      where: { email: activeteDTO.email },
-    });
-
     user.isActivated = true;
     await this.userRepository.save(user);
     await this.activationCodeRepository.remove(activationCode);
+
+    return {
+      success: true,
+    };
   }
 
   async resendActivatedCode(resendCodeDTO: ResendCodeDTO) {
@@ -132,6 +144,12 @@ export class AuthService {
       throw new HttpException(NOT_REGISTRATION, HttpStatus.NOT_FOUND);
     }
 
+    if (activationCode.user.isActivated) {
+      throw new HttpException(
+        ACCOUNT_HAS_BEEN_ALREADY_ACTIVATED,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const code = randomCode(6);
     activationCode.code = code;
 
@@ -139,17 +157,19 @@ export class AuthService {
 
     this.emailService.sendLetter({
       to: resendCodeDTO.email,
-      filePath: './views/activationEmail.hjs',
-      subject: '',
+      filePath: './views/resendActivatedCode.hjs',
+      subject: 'Новий код ативації',
       context: {
-        // code: user.activationCode.code.split('').map((character) => {
-        //   return {
-        //     symbol: character,
-        //   };
-        // }),
-        // name: user.firstName,
+        code: code.split('').map((character) => {
+          return {
+            symbol: character,
+          };
+        }),
       },
     });
+    return {
+      success: true,
+    };
   }
 
   async sendActivationEmail(user: UserEntity): Promise<void> {
@@ -180,7 +200,7 @@ export class AuthService {
         'phone',
         'avatar',
         'isActivated',
-        'activationLink',
+        'forgotPasswordLink',
         'roles',
       ],
       where: { email: loginUserDto.email },
@@ -244,18 +264,71 @@ export class AuthService {
     };
   }
 
-  async activate(activationLink: string) {
+  // `${process.env.API_URL}/api/auth/activate?link=${user.activationLink}`
+
+  async forgotPassword(forgetPasswordDTO: ResendCodeDTO) {
     const user = await this.userRepository.findOne({
-      where: { activationLink },
+      where: { email: forgetPasswordDTO.email },
+    });
+    if (!user) {
+      throw new HttpException(NOT_REGISTRATION, HttpStatus.NOT_FOUND);
+    }
+
+    await this.emailService.sendLetter({
+      to: user.email,
+      filePath: './views/forgotPassword.hjs',
+      subject: 'Востановити пароль',
+      context: {
+        link: `${process.env.CLIENT_URL}forgot-password/?userLink=${user.forgotPasswordLink}`,
+        name: user.firstName,
+      },
+    });
+  }
+
+  async updatePassword(updatePasswordDTO: UpdatePasswordDTO) {
+    const user = await this.userRepository.findOne({
+      select: [
+        'id',
+        'firstName',
+        'lastName',
+        'userName',
+        'password',
+        'email',
+        'bio',
+        'phone',
+        'avatar',
+        'isActivated',
+        'forgotPasswordLink',
+        'roles',
+      ],
+      where: { forgotPasswordLink: updatePasswordDTO.forgotPasswordLink },
     });
 
     if (!user) {
-      throw new HttpException(INCORRECT_ACTIVATION_LINK, HttpStatus.NOT_FOUND);
+      throw new HttpException(NOT_REGISTRATION, HttpStatus.NOT_FOUND);
     }
 
-    user.isActivated = true;
+    user.password = await bcrypt.hash(updatePasswordDTO.newPassword, 10);
+
     await this.userRepository.save(user);
+
+    return {
+      success: true,
+    };
   }
+
+  // async activate(activationLink: string) {
+  //   const user = await this.userRepository.findOne({
+  //     where: { activationLink },
+  //   });
+
+  //   if (!user) {
+  //     throw new HttpException(INCORRECT_ACTIVATION_LINK, HttpStatus.NOT_FOUND);
+  //   }
+
+  //   user.isActivated = true;
+  //   await this.userRepository.save(user);
+  // }
 
   validateToken(token: string, secret: string): TokenDecodeData | null {
     try {
