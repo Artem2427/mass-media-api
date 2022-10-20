@@ -1,9 +1,17 @@
 import { BaseEntity } from 'src/core/entities/base.entity';
 import { UserRolesEnum } from 'src/core/enums/userRole.enum';
-import { BeforeInsert, Column, Entity, OneToOne } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ActivationCodeEntity } from 'src/auth/entity/activation-code.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ArticleEntity } from 'src/article/entity/article.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
@@ -19,7 +27,7 @@ export class UserEntity extends BaseEntity {
   @Column({ type: 'varchar', length: '2000', nullable: true, unique: true })
   userName: string;
 
-  @ApiProperty({ type: String })
+  @ApiProperty({ type: String, writeOnly: true })
   @Column({ type: 'varchar', length: '2000', nullable: false, select: false })
   password: string;
 
@@ -63,6 +71,10 @@ export class UserEntity extends BaseEntity {
     { cascade: ['insert', 'update'] },
   )
   activationCode: ActivationCodeEntity;
+
+  @ApiProperty({ type: () => [ArticleEntity] })
+  @OneToMany(() => ArticleEntity, (article) => article.author)
+  articles: ArticleEntity[];
 
   @BeforeInsert()
   async hashPassord() {
