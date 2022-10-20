@@ -5,5 +5,5 @@ export class ResendCodeDTO {
   @ApiProperty({ type: String, name: 'email', required: true })
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  readonly email: string;
 }
