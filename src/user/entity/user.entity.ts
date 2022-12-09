@@ -64,6 +64,25 @@ export class UserEntity extends BaseEntity {
   })
   roles: UserRolesEnum[];
 
+  @ApiProperty({ type: Number, nullable: true, maximum: 5 })
+  @Column({
+    type: 'float',
+    nullable: true,
+  })
+  rating: number;
+
+  @ApiProperty({ type: [String], isArray: true })
+  @Column({ type: 'varchar', array: true })
+  searchHistory: string[];
+
+  @ApiProperty({ type: Boolean })
+  @Column({ type: 'bool', default: false })
+  isSubscribe: boolean;
+
+  @ApiProperty({ type: String })
+  @Column({ type: 'timestamp', nullable: true })
+  dataOfBorn: Date;
+
   @ApiPropertyOptional({ type: () => ActivationCodeEntity, example: {} })
   @OneToOne(
     () => ActivationCodeEntity,
@@ -77,7 +96,7 @@ export class UserEntity extends BaseEntity {
   articles: ArticleEntity[];
 
   @BeforeInsert()
-  async hashPassord() {
+  async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);
   }
 }
