@@ -38,4 +38,4 @@ async function bootstrap() {
 }
 bootstrap();
 
-//psql --host=ec2-52-207-90-231.compute-1.amazonaws.com --username=qcppirmxroywrf --password=fc49a095479a15caf403c2e103157ee350743ca4683040b312fa74d200b37ced --dbname=dc2s7m2svfh9dj
+//psql --host=ec2-54-75-184-144.eu-west-1.compute.amazonaws.com --username=rlayvbswtwgacg --password=41a2e5e9e74f858417e9eae7b5822de19475f8d278b250ddc3c38230d717c0eb --dbname=dfbbhkbe2ehe19
