@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { ActivationCodeEntity } from 'src/auth/entity/activation-code.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ArticleEntity } from 'src/article/entity/article.entity';
+import { CityEntity } from 'src/city/entity/city.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
@@ -24,7 +25,7 @@ export class UserEntity extends BaseEntity {
   lastName: string;
 
   @ApiProperty({ type: String })
-  @Column({ type: 'varchar', length: '2000', nullable: true, unique: true })
+  @Column({ type: 'varchar', length: '200', nullable: true, unique: true })
   userName: string;
 
   @ApiProperty({ type: String, writeOnly: true })
@@ -94,6 +95,12 @@ export class UserEntity extends BaseEntity {
   @ApiProperty({ type: () => [ArticleEntity] })
   @OneToMany(() => ArticleEntity, (article) => article.author)
   articles: ArticleEntity[];
+
+  @ApiProperty({ type: () => CityEntity })
+  @ManyToOne(() => CityEntity, (cities) => cities.users, {
+    onDelete: 'CASCADE',
+  })
+  city: CityEntity;
 
   @BeforeInsert()
   async hashPassword() {

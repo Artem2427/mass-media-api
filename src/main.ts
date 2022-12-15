@@ -17,7 +17,11 @@ async function bootstrap() {
     .setTitle('Mass-media API')
     .setDescription('Documentations REST API')
     .setVersion('1.0.0')
-    .addServer('https://mass-media-db.herokuapp.com/')
+    .addServer(
+      process.env.PROD !== 'false'
+        ? 'https://mass-media-db.herokuapp.com/'
+        : 'http://localhost:5000',
+    )
     .addBearerAuth(
       {
         type: 'http',

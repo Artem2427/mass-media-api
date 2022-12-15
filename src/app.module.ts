@@ -15,6 +15,7 @@ import { AppService } from './app.service';
 
 import { AuthMiddleware } from './auth/middleware/auth.middleware';
 import { ArticleModule } from './article/article.module';
+import { CityModule } from './city/city.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ArticleModule } from './article/article.module';
     UserModule,
     EmailModule,
     ArticleModule,
+    CityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

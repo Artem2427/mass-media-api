@@ -11,7 +11,7 @@ import {
   CANNOT_LOGIN_WITHOUT_ACTIVATE_YOUR_ACCOUNT,
   CODE_IS_NOT_CORRECT,
   EMAIL_OR_USERNAME_ARE_TAKEN,
-  INVALID_CREDETIALS,
+  INVALID_CREDENTIALS,
   NOT_REGISTRATION,
   UNAUTHORIZED,
 } from './errors/errors';
@@ -30,7 +30,7 @@ import {
 } from './types/tokens.interface';
 import { RegistrationResponseInterface } from './types/common';
 import { randomCode } from 'src/core/utils/random-code';
-import { ActivateByCodeDTO } from './dto/activeteByCode.dto';
+import { ActivateByCodeDTO } from './dto/activateByCode.dto';
 import { ResendCodeDTO } from './dto/resendCode.dto';
 import { UpdatePasswordDTO } from './dto/updatePassword.dto';
 
@@ -99,7 +99,7 @@ export class AuthService {
     };
   }
 
-  async activeteAccountByCode(activeteDTO: ActivateByCodeDTO) {
+  async activateAccountByCode(activeteDTO: ActivateByCodeDTO) {
     const activationCode = await this.activationCodeRepository
       .createQueryBuilder('activationCode')
       .leftJoinAndSelect('activationCode.user', 'user')
@@ -207,7 +207,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException(INVALID_CREDETIALS, HttpStatus.NOT_FOUND);
+      throw new HttpException(INVALID_CREDENTIALS, HttpStatus.NOT_FOUND);
     }
 
     const isPassEquals = await bcrypt.compare(
@@ -216,7 +216,7 @@ export class AuthService {
     );
 
     if (!isPassEquals) {
-      throw new HttpException(INVALID_CREDETIALS, HttpStatus.NOT_FOUND);
+      throw new HttpException(INVALID_CREDENTIALS, HttpStatus.NOT_FOUND);
     }
 
     if (!user.isActivated) {
