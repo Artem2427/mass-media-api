@@ -35,11 +35,9 @@ import { RegistrationResponseInterface } from './types/common';
 import { AccessTokenType } from './types/tokens.interface';
 import { UNAUTHORIZED } from './errors/errors';
 // import { ActivationLinkQuery } from './dto/activationQuery.dto';
-import { ActivateByCodeDTO } from './dto/activeteByCode.dto';
+import { ActivateByCodeDTO } from './dto/activateByCode.dto';
 import { ResendCodeDTO } from './dto/resendCode.dto';
 import { UpdatePasswordDTO } from './dto/updatePassword.dto';
-import { User } from 'src/user/decorators/user.decorator';
-import { UserEntity } from 'src/user/entity/user.entity';
 
 @ApiTags('Authorization user')
 @Controller('auth')
@@ -68,13 +66,13 @@ export class AuthController {
     return { userEmail: registrationUser.userEmail };
   }
 
-  @ApiOperation({ summary: 'Activete your account by code' })
+  @ApiOperation({ summary: 'Activate your account by code' })
   @ApiBody({ type: ActivateByCodeDTO })
   @ApiOkResponse({ description: 'Account is activated' })
   @Post('activate-by-code')
   @HttpCode(HttpStatus.OK)
-  async activeteAccountByCode(@Body() activeteDTO: ActivateByCodeDTO) {
-    return this.authService.activeteAccountByCode(activeteDTO);
+  async activateAccountByCode(@Body() activateDTO: ActivateByCodeDTO) {
+    return this.authService.activateAccountByCode(activateDTO);
   }
 
   @ApiOperation({ summary: 'Resend activated code' })
