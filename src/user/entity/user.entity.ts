@@ -56,6 +56,14 @@ export class UserEntity extends BaseEntity {
   @Column({ type: 'varchar', length: '2000', nullable: false })
   forgotPasswordLink: string;
 
+  @ApiProperty({ type: String })
+  @Column({ type: 'varchar', length: '300', nullable: true })
+  blockReason: string;
+
+  @ApiProperty({ type: Boolean })
+  @Column({ type: 'bool', default: false })
+  isBlocked: boolean;
+
   @ApiProperty({ enum: UserRolesEnum, isArray: true })
   @Column({
     type: 'enum',
