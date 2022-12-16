@@ -13,4 +13,14 @@ export class UserService {
   async findByEmail(email: string): Promise<UserEntity> {
     return await this.userRepository.findOne({ where: { email } });
   }
+
+  async findOneWithRelations() {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.city', 'city')
+      .where('user.email = :email', { email: 'artem.danko.2k18@gmail.com' })
+      .getOne();
+
+    return user;
+  }
 }

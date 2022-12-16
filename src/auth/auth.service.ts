@@ -33,6 +33,7 @@ import { randomCode } from 'src/core/utils/random-code';
 import { ActivateByCodeDTO } from './dto/activateByCode.dto';
 import { ResendCodeDTO } from './dto/resendCode.dto';
 import { UpdatePasswordDTO } from './dto/updatePassword.dto';
+import { CityService } from 'src/city/city.service';
 
 @Injectable()
 export class AuthService {
@@ -42,6 +43,7 @@ export class AuthService {
     @InjectRepository(ActivationCodeEntity)
     private readonly activationCodeRepository: Repository<ActivationCodeEntity>,
     private readonly emailService: EmailService,
+    private readonly cityService: CityService,
   ) {}
 
   async createUser(createUserDto: CreateUserDTO): Promise<UserEntity> {
@@ -72,6 +74,10 @@ export class AuthService {
     activationCode.code = code;
 
     newUser.activationCode = activationCode;
+
+    const city = await this.cityService.findOneById(createUserDto.cityId);
+
+    newUser.city = city;
 
     return await this.userRepository.save(newUser);
   }
@@ -201,7 +207,7 @@ export class AuthService {
         'avatar',
         'isActivated',
         'forgotPasswordLink',
-        'roles',
+        'role',
       ],
       where: { email: loginUserDto.email },
     });
@@ -299,7 +305,7 @@ export class AuthService {
         'avatar',
         'isActivated',
         'forgotPasswordLink',
-        'roles',
+        'role',
       ],
       where: { forgotPasswordLink: updatePasswordDTO.forgotPasswordLink },
     });

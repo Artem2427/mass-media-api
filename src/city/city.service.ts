@@ -20,6 +20,8 @@ export class CityService {
     if (!city) {
       throw new NotFoundException(NOT_FOUND_CITY);
     }
+
+    return city;
   }
 
   async getAllCities() {
@@ -720,6 +722,17 @@ export class CityService {
     // }
     const queryBuilder = this.cityRepository
       .createQueryBuilder('city')
+      .orderBy('city.name', 'ASC');
+
+    return await queryBuilder.getMany();
+  }
+
+  async getRegionalCities() {
+    const queryBuilder = this.cityRepository
+      .createQueryBuilder('city')
+      .where('city.isRegionalCenter = :isRegionalCenter', {
+        isRegionalCenter: true,
+      })
       .orderBy('city.name', 'ASC');
 
     return await queryBuilder.getMany();
