@@ -64,14 +64,13 @@ export class UserEntity extends BaseEntity {
   @Column({ type: 'bool', default: false })
   isBlocked: boolean;
 
-  @ApiProperty({ enum: UserRolesEnum, isArray: true })
+  @ApiProperty({ enum: UserRolesEnum })
   @Column({
     type: 'enum',
     enum: UserRolesEnum,
-    array: true,
-    default: [UserRolesEnum.Ghost],
+    default: UserRolesEnum.Ghost,
   })
-  roles: UserRolesEnum[];
+  role: UserRolesEnum;
 
   @ApiProperty({ type: Number, nullable: true, maximum: 5 })
   @Column({
@@ -81,7 +80,7 @@ export class UserEntity extends BaseEntity {
   rating: number;
 
   @ApiProperty({ type: [String], isArray: true })
-  @Column({ type: 'varchar', array: true })
+  @Column({ type: 'varchar', array: true, default: [] })
   searchHistory: string[];
 
   @ApiProperty({ type: Boolean })

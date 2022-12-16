@@ -30,7 +30,7 @@ export class RoleGuard implements CanActivate {
       .getRequest<ExpressRequestInterface>();
 
     if (request.user) {
-      return request.user.roles.some((role) => requiredRoles.includes(role));
+      return [request.user.role].some((role) => requiredRoles.includes(role));
     }
 
     throw new HttpException(FORBIDDEN_FOR_ROLE, HttpStatus.FORBIDDEN);

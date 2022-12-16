@@ -8,9 +8,13 @@ import { EmailService } from 'src/email/email.service';
 
 import { UserEntity } from 'src/user/entity/user.entity';
 import { ActivationCodeEntity } from './entity/activation-code.entity';
+import { CityModule } from 'src/city/city.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, ActivationCodeEntity])],
+  imports: [
+    TypeOrmModule.forFeature([UserEntity, ActivationCodeEntity]),
+    CityModule,
+  ],
   controllers: [AuthController],
   providers: [AuthService, EmailService],
   exports: [AuthService],

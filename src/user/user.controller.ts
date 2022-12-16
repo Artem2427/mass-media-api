@@ -21,13 +21,13 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiBearerAuth('JWT-auth')
+  // @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get user data' })
   @ApiOkResponse({ type: UserEntity })
   @Get()
   @Roles(UserRolesEnum.Ghost)
-  @UseGuards(AuthGuard, RoleGuard)
+  // @UseGuards(AuthGuard, RoleGuard)
   async currentUser(@User() user: UserEntity): Promise<UserEntity> {
-    return user;
+    return await this.userService.findOneWithRelations();
   }
 }

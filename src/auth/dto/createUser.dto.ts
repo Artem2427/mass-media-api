@@ -5,6 +5,8 @@ import {
   IsOptional,
   IsEnum,
   MinLength,
+  IsUUID,
+  IsArray,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -36,12 +38,17 @@ export class CreateUserDTO {
   @IsString()
   readonly userName: string;
 
+  @ApiProperty({ type: String })
+  @IsNotEmpty()
+  @IsString()
+  @IsUUID('all', { each: true, message: 'Not valid Id' })
+  readonly cityId: string;
+
   @ApiPropertyOptional({
     enum: UserRolesEnum,
-    isArray: true,
     default: UserRolesEnum.Ghost,
   })
   @IsOptional()
   @IsEnum(UserRolesEnum)
-  readonly roles?: UserRolesEnum[];
+  readonly role?: UserRolesEnum;
 }
