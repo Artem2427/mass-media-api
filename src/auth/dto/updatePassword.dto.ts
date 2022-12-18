@@ -1,5 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IS_REQUIRED,
+  IS_STRING,
+  MIN_LENGTH,
+} from 'src/core/errorsFieldMessage/messages';
 
 export class UpdatePasswordDTO {
   @ApiProperty({
@@ -7,8 +12,8 @@ export class UpdatePasswordDTO {
     name: 'forgotPasswordLink',
     required: true,
   })
-  @IsNotEmpty()
-  @IsString()
+  @IsNotEmpty({ message: IS_REQUIRED })
+  @IsString({ message: IS_STRING })
   readonly forgotPasswordLink: string;
 
   @ApiProperty({
@@ -17,8 +22,8 @@ export class UpdatePasswordDTO {
     required: true,
     minLength: 5,
   })
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(5)
+  @IsNotEmpty({ message: IS_REQUIRED })
+  @IsString({ message: IS_STRING })
+  @MinLength(5, { message: MIN_LENGTH(5) })
   readonly newPassword: string;
 }

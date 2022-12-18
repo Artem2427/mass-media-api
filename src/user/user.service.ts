@@ -14,11 +14,11 @@ export class UserService {
     return await this.userRepository.findOne({ where: { email } });
   }
 
-  async findOneWithRelations() {
+  async findOneWithRelations(email: string): Promise<UserEntity> {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.city', 'city')
-      .where('user.email = :email', { email: 'artem.danko.2k18@gmail.com' })
+      .where('user.email = :email', { email })
       .getOne();
 
     return user;
