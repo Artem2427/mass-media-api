@@ -68,7 +68,7 @@ export class UserEntity extends BaseEntity {
   @Column({
     type: 'enum',
     enum: UserRolesEnum,
-    default: UserRolesEnum.Ghost,
+    default: UserRolesEnum.User,
   })
   role: UserRolesEnum;
 
@@ -90,6 +90,12 @@ export class UserEntity extends BaseEntity {
   @ApiProperty({ type: String })
   @Column({ type: 'timestamp', nullable: true })
   dataOfBorn: Date;
+
+  @Column({ type: 'bool', default: false })
+  banned: boolean;
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  banReason: string;
 
   @ApiPropertyOptional({ type: () => ActivationCodeEntity, example: {} })
   @OneToOne(

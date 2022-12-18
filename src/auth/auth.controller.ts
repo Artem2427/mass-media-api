@@ -38,11 +38,25 @@ import { UNAUTHORIZED } from './errors/errors';
 import { ActivateByCodeDTO } from './dto/activateByCode.dto';
 import { ResendCodeDTO } from './dto/resendCode.dto';
 import { UpdatePasswordDTO } from './dto/updatePassword.dto';
+import { MyValidationPipe } from 'src/core/pipes/validation.pipe';
 
 @ApiTags('Authorization user')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Check refresh token' })
+  @Get('refresh')
+  async getRefreshToken(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AccessTokenType> {
+    const { refreshToken } = request.cookies;
+    const tokens = await this.authService.refresh(refreshToken);
+
+    return { accessToken: tokens.accessToken };
+  }
 
   @ApiOperation({ summary: 'Register new user' })
   @ApiBody({ type: CreateUserDTO })
@@ -50,7 +64,7 @@ export class AuthController {
     description: 'User Registration',
   })
   @Post('registration')
-  @UsePipes(new ValidationPipe())
+  @UsePipes(MyValidationPipe)
   async createUser(
     @Res({ passthrough: true }) response: Response,
     @Body() createUserDto: CreateUserDTO,
@@ -70,6 +84,7 @@ export class AuthController {
   @ApiBody({ type: ActivateByCodeDTO })
   @ApiOkResponse({ description: 'Account is activated' })
   @Post('activate-by-code')
+  @UsePipes(MyValidationPipe)
   @HttpCode(HttpStatus.OK)
   async activateAccountByCode(@Body() activateDTO: ActivateByCodeDTO) {
     return this.authService.activateAccountByCode(activateDTO);
@@ -79,6 +94,7 @@ export class AuthController {
   @ApiBody({ type: ResendCodeDTO })
   @ApiOkResponse({ description: 'Account is activated' })
   @Post('resend-activation-code')
+  @UsePipes(MyValidationPipe)
   @HttpCode(HttpStatus.OK)
   async resendActivatedCode(@Body() resendCodeDTO: ResendCodeDTO) {
     return await this.authService.resendActivatedCode(resendCodeDTO);
@@ -88,7 +104,7 @@ export class AuthController {
   @ApiBody({ type: LoginUserDTO })
   @ApiOkResponse({ description: 'User login' })
   @Post('login')
-  @UsePipes(new ValidationPipe())
+  @UsePipes(MyValidationPipe)
   async logIn(
     @Res({ passthrough: true }) response: Response,
     @Body() loginUserDto: LoginUserDTO,
@@ -108,16 +124,9 @@ export class AuthController {
   @ApiOkResponse({ description: 'Letter was sent on your email' })
   @ApiNotFoundResponse({ description: 'User with this email not found' })
   @Post('forgot-password')
+  @UsePipes(MyValidationPipe)
   async forgotPassword(@Body() forgetPasswordDTO: ResendCodeDTO) {
     return await this.authService.forgotPassword(forgetPasswordDTO);
-  }
-
-  @ApiOperation({ summary: 'Set new password' })
-  @ApiBody({ type: UpdatePasswordDTO })
-  @ApiOkResponse({ description: 'Password was successfully changed' })
-  @Patch('update-password')
-  async updatePassword(@Body() updatePasswordDTO: UpdatePasswordDTO) {
-    return await this.authService.updatePassword(updatePasswordDTO);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -128,6 +137,15 @@ export class AuthController {
   @UseGuards(AuthGuard)
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('refreshToken');
+  }
+
+  @ApiOperation({ summary: 'Set new password' })
+  @ApiBody({ type: UpdatePasswordDTO })
+  @ApiOkResponse({ description: 'Password was successfully changed' })
+  @Patch('update-password')
+  @UsePipes(MyValidationPipe)
+  async updatePassword(@Body() updatePasswordDTO: UpdatePasswordDTO) {
+    return await this.authService.updatePassword(updatePasswordDTO);
   }
 
   // @ApiBearerAuth('JWT-auth')
@@ -143,17 +161,4 @@ export class AuthController {
 
   //   return response.redirect(process.env.CLIENT_URL);
   // }
-
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Check refresh token' })
-  @Get('refresh')
-  async getRefreshToken(
-    @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
-  ): Promise<AccessTokenType> {
-    const { refreshToken } = request.cookies;
-    const tokens = await this.authService.refresh(refreshToken);
-
-    return { accessToken: tokens.accessToken };
-  }
 }
